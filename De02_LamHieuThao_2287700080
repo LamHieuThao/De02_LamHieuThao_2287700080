@@ -1,0 +1,215 @@
+using System;
+using System.Data;
+using System.Linq;
+using System.Windows.Forms;
+using WindowsFormsApp8.Model;
+
+namespace WindowsFormsApp8
+{
+    public partial class frmSanpham : Form
+    {
+        public frmSanpham()
+        {
+            InitializeComponent();
+        }
+
+        private void LoadData()
+        {
+            using (var db = new QLSP())
+            {
+                // Hiển thị dữ liệu lên DataGridView
+                dgvSanpham.DataSource = db.Sanphams
+                    .Select(sp => new
+                    {
+                        sp.MaSP,
+                        sp.TenSP,
+                        sp.NgayNhap,
+                        TenLoai = sp.LoaiSP.TenLoai
+                    }).ToList();
+
+                cboLoaiSP.DataSource = db.LoaiSPs.ToList();
+                cboLoaiSP.DisplayMember = "TenLoai";
+                cboLoaiSP.ValueMember = "MaLoai";
+
+            }
+        }
+
+        private void frmSanpham_Load(object sender, EventArgs e)
+        {
+            LoadData();
+            LoadLoaiSP();
+            ClearInput();
+
+            dgvSanpham.CellClick += dgvSanpham_CellClick;
+        }
+
+
+        private void btnThem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                using (var db = new QLSP())
+                {
+                    
+                    var sanpham = new Sanpham
+                    {
+                        MaSP = txtMaSP.Text,
+                        TenSP = txtTenSP.Text,
+                        NgayNhap = dtNgayNhap.Value,
+                        MaLoai = cboLoaiSP.SelectedValue.ToString()
+                    };
+
+                   
+                    db.Sanphams.Add(sanpham);
+                    db.SaveChanges(); 
+
+                    MessageBox.Show("Giỏi Quá Thêm Thành Công Gòi Nè !", "Thông báo");
+                    LoadData(); 
+                    ClearInput(); 
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"ERROR: {ex.Message}", "Lỗi");
+            }
+        }
+
+        private void ClearInput()
+        {
+            txtMaSP.Text = string.Empty;
+            txtTenSP.Text = string.Empty;
+            dtNgayNhap.Value = DateTime.Now;
+            cboLoaiSP.SelectedIndex = -1; 
+        }
+
+        private void btnSua_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                using (var db = new QLSP())
+                {
+                   
+                    string maSP = txtMaSP.Text;
+
+                   
+                    var sanpham = db.Sanphams.FirstOrDefault(sp => sp.MaSP == maSP);
+
+                    if (sanpham != null)
+                    {
+                        
+                        sanpham.TenSP = txtTenSP.Text;
+                        sanpham.NgayNhap = dtNgayNhap.Value;
+                        sanpham.MaLoai = cboLoaiSP.SelectedValue.ToString();
+
+                        db.SaveChanges(); 
+
+                        MessageBox.Show("Cập nhật sản phẩm thành công Gòi Nè !", "Thông báo");
+                        LoadData(); 
+                        ClearInput(); 
+                    }
+                    else
+                    {
+                        MessageBox.Show("Hong Có SP Chọn Lại Đê:)))", "Lỗi");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"ERRO {ex.Message}", "Lỗi");
+            }
+        }
+
+        private void btnXoa_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                using (var db = new QLSP())
+                {
+                    
+                    string maSP = txtMaSP.Text;
+
+                    
+                    var sanpham = db.Sanphams.FirstOrDefault(sp => sp.MaSP == maSP);
+
+                    if (sanpham != null)
+                    {
+                        
+                        db.Sanphams.Remove(sanpham);
+                        db.SaveChanges();
+
+                        MessageBox.Show("Giỏi Quá Xóa Được Sản Phẩm Gòi!", "Thông báo");
+                        LoadData(); 
+                        ClearInput(); 
+                    }
+                    else
+                    {
+                        MessageBox.Show("Hỏng Có Sản Phẩm :)) ", "Lỗi");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"ERROR {ex.Message}", "Lỗi");
+            }
+        }
+
+        private void LoadLoaiSP()
+        {
+            using (var db = new QLSP())
+            {
+                var loaiSPs = db.LoaiSPs.ToList();
+                cboLoaiSP.DataSource = loaiSPs;
+                cboLoaiSP.DisplayMember = "TenLoai";
+                cboLoaiSP.ValueMember = "MaLoai";   
+            }
+        }
+
+        private void btnDong_Click(object sender, EventArgs e)
+        {
+            var result = MessageBox.Show(
+        "Bạn chắc chắn muốn đóng?",
+        "Xác Nhận",
+        MessageBoxButtons.YesNo,
+        MessageBoxIcon.Question
+        );
+
+            if (result == DialogResult.Yes)
+            {
+                this.Close(); 
+            }
+        }
+
+        private void btnTim_Click(object sender, EventArgs e)
+        {
+           
+        }
+
+        private void dgvSanpham_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            
+        }
+
+        private void dgvSanpham_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                
+                if (e.RowIndex < 0) return;
+
+                DataGridViewRow row = dgvSanpham.Rows[e.RowIndex];
+
+                // Hiển thị dữ liệu lên các control
+                txtMaSP.Text = row.Cells["MaSP"].Value.ToString();
+                txtTenSP.Text = row.Cells["TenSP"].Value.ToString();
+                dtNgayNhap.Value = Convert.ToDateTime(row.Cells["NgayNhap"].Value);
+
+                
+                cboLoaiSP.SelectedValue = row.Cells["MaLoai"].Value;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi khi chọn dòng: {ex.Message}", "Lỗi");
+            }
+        }
+    }
+}

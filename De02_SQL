@@ -1,0 +1,26 @@
+CREATE DATABASE QLSanpham;
+USE QLSanpham;
+
+
+CREATE TABLE LoaiSP (
+    MaLoai CHAR(2) PRIMARY KEY,
+    TenLoai NVARCHAR(30)
+);
+
+CREATE TABLE Sanpham (
+    MaSP CHAR(6) PRIMARY KEY,
+    TenSP NVARCHAR(30),
+    NgayNhap DATETIME,
+    MaLoai CHAR(2),
+    FOREIGN KEY (MaLoai) REFERENCES LoaiSP(MaLoai)
+);
+
+
+INSERT INTO LoaiSP (MaLoai, TenLoai)
+VALUES ('B1', 'Banh Keo'), ('G1', 'Giai Khat');
+
+INSERT INTO Sanpham (MaSP, TenSP, NgayNhap, MaLoai)
+VALUES
+    ('SP001', 'Banh Quy Bo Sua', '2014-08-20', 'B1'),
+    ('SP002', 'Banh Mi Thap Cam', '2014-05-24', 'B1'),
+    ('SP003', 'Bia lon Tiger', '2014-04-20', 'G1');
